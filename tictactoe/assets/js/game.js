@@ -7,18 +7,33 @@ class TwoPlayer {
         this.cells = document.querySelectorAll('.cell');
         this.message = document.querySelector('.message p');
         this.resetBtn = document.getElementById('reset');
-        this.mode = 'X'; // Current player symbol
+        this.mode = 'x';
         this.blocks = ['', '', '', '', '', '', '', '', ''];
         this.isGameOver = false;
 
+        this.#showTictactoe();
         this.#addEventListeners();
+    }
+
+    #hideTicTacToe() {
+        let tictactoe = document.querySelector('.tictactoe');
+        if (tictactoe) {
+            tictactoe.style.display = 'none';
+        }
+    }
+
+    #showTictactoe() {
+        let tictactoe = document.querySelector('.tictactoe');
+        if (tictactoe) {
+            tictactoe.style.display = 'grid';
+        }
     }
 
     #addEventListeners() {
         const cells = this.cells;
         const message = this.message;
         const reset = this.resetBtn;
-        
+
         cells.forEach(cell => {
             cell.addEventListener('click', () => {
                 const index = Array.from(cells).indexOf(cell);
@@ -27,30 +42,49 @@ class TwoPlayer {
         });
 
         if (reset) {
-            reset.addEventListener('click', () => this.resetGame());
+            reset.addEventListener('click', () => {
+                cells.forEach((cell, index) => {
+                    cell.innerHTML = '';
+                    cell.className = 'cell'; // Clears x, o, and winner-cell classes completely
+                    this.blocks[index] = '';
+                });
+
+                this.mode = 'x';
+                this.isGameOver = false;
+
+                if (message) {
+                    message.innerHTML = `Player ${this.mode.toUpperCase()}'s turn`;
+                }
+
+                if (typeof stopConfetti === 'function') {
+                    stopConfetti();
+                }
+
+                this.#showTictactoe();
+            });
         }
     }
 
     makeMove(index, cell) {
         if (this.isGameOver || this.blocks[index] !== '') return;
 
-        // Store current player symbol in blocks array
+        // Store current player's symbol in blocks array
         this.blocks[index] = this.mode;
 
-        // Put symbol inside cell and add class
-        cell.innerHTML = `<span>${this.mode}</span>`;
+        // Put X/O inside cell and add class
+        cell.innerHTML = `<span>${this.mode.toUpperCase()}</span>`;
         cell.classList.add(this.mode.toLowerCase());
 
         // Check for winner after move
-        const result = checkWinner(this.blocks);
+        const result = typeof checkWinner === 'function' ? checkWinner(this.blocks) : null;
 
         if (result) {
             this.handleGameEnd(result);
         } else {
-            // Switch player
-            this.mode = this.mode === 'X' ? 'O' : 'X';
+            // Switch current player
+            this.mode = this.mode === 'x' ? 'o' : 'x';
             if (this.message) {
-                this.message.textContent = `Player ${this.mode}'s turn`;
+                this.message.innerHTML = `Player ${this.mode.toUpperCase()}'s turn`;
             }
         }
     }
@@ -59,10 +93,10 @@ class TwoPlayer {
         this.isGameOver = true;
         const { winner, combo } = result;
 
-        if (winner === 'Draw') {
-            if (this.message) this.message.textContent = "It's a Draw!";
+        if (winner === 'Draw' || winner === 'draw') {
+            if (this.message) this.message.innerHTML = "It's a Draw!";
         } else {
-            if (this.message) this.message.textContent = `Player ${winner} Wins!`;
+            if (this.message) this.message.innerHTML = `Player ${winner.toUpperCase()} Wins!`;
             if (combo) {
                 combo.forEach(idx => {
                     if (this.cells[idx]) {
@@ -71,42 +105,25 @@ class TwoPlayer {
                 });
             }
         }
-        
-        if (typeof showConfetti === 'function' && winner !== 'Draw') {
+
+        if (typeof showConfetti === 'function' && winner !== 'Draw' && winner !== 'draw') {
             showConfetti();
         }
-    }
-
-    resetGame() {
-        this.blocks = ['', '', '', '', '', '', '', '', ''];
-        this.mode = 'X';
-        this.isGameOver = false;
-
-        if (this.message) {
-            this.message.textContent = "Player X's turn";
-        }
-
-        this.cells.forEach(cell => {
-            cell.innerHTML = '';
-            cell.classList.remove('x', 'o', 'winner-cell');
-        });
     }
 }
 
 class AIPlayer extends TwoPlayer {
-    constructor(aiSymbol = 'O') {
+    constructor(aiSymbol = 'o') {
         super();
-        this.aiSymbol = aiSymbol;
-        this.humanSymbol = aiSymbol === 'O' ? 'X' : 'O';
+        this.aiSymbol = aiSymbol.toLowerCase();
+        this.humanSymbol = this.aiSymbol === 'o' ? 'x' : 'o';
     }
 
     makeMove(index, cell) {
         if (this.isGameOver || this.blocks[index] !== '' || this.mode !== this.humanSymbol) return;
 
-        // Human move
         super.makeMove(index, cell);
 
-        // If game not over after human move, trigger AI move
         if (!this.isGameOver && this.mode === this.aiSymbol) {
             setTimeout(() => this.makeAIMove(), 400);
         }
@@ -141,11 +158,12 @@ class AIPlayer extends TwoPlayer {
     }
 
     minimax(board, depth, isMaximizing) {
-        const result = checkWinner(board);
+        const result = typeof checkWinner === 'function' ? checkWinner(board) : null;
         if (result) {
-            if (result.winner === this.aiSymbol) return 10 - depth;
-            if (result.winner === this.humanSymbol) return depth - 10;
-            if (result.winner === 'Draw') return 0;
+            const w = result.winner ? result.winner.toLowerCase() : '';
+            if (w === this.aiSymbol) return 10 - depth;
+            if (w === this.humanSymbol) return depth - 10;
+            if (w === 'draw') return 0;
         }
 
         if (isMaximizing) {
