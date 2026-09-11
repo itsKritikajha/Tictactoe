@@ -1,0 +1,105 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Kalam:wght@300&display=swap');
+
+body {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    height: 100vh;
+    background-color: #f0f0f0;
+}
+
+
+.welcome-container{
+    text-align: center;
+}
+
+.welcome-title{
+    font-family: 'Gochi Hand', cursive;
+    color: black;
+    text-shadow: 2px 2px 4px rgba(98, 255, 111, 0.5);
+    animation-name: blink;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes blink {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animated-border {
+    width: 50px;
+    height: 3px;
+    background-color: #4caf50;
+    margin: 20px auto;
+    animation: borderAnimation 1s infinite alternate;
+}
+
+@keyframes borderAnimation {
+    from {
+        width: 10px;
+    }
+
+    to {
+        width: 200px;
+    }
+}
+
+body.loaded .loading-overlay {
+    display: none;
+}
+
+body.loaded .content {
+    display: block;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #31a335;
+}
+
+
+#mute{
+    position: absolute;
+    right: 25px;
+    bottom: 25px;
+    color: white;
+    background-color: black;
+    padding: 10px;
+    border-radius: 50%;
+}
+
+.options{
+    display: flex;
+    flex-wrap: wrap;
+    padding: 10px;
+    border-radius: 5px;
+    justify-content: center;
+    gap: 10px;
+}
+
+a{
+    text-decoration: none;
+    color: white;
+}
